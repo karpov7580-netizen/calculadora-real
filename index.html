@@ -2,18 +2,78 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ganancia Real por Hora - Cali</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
 body{background:#0f172a;color:#f1f5f9;padding:14px;max-width:420px;margin:0 auto}
-h1{text-align:center;font-size:20px;font-weight:900;margin:14px 0 2px;letter-spacing:-0.5px}
+h1{text-align:center;font-size:20px;font-weight:900;margin:10px 0 4px}
 .sub{text-align:center;color:#94a3b8;font-size:11px;margin-bottom:16px}
-.card{background:#1e293b;border-radius:20px;padding:18px;margin:10px 0;border:1px solid #334155;box-shadow:0 8px 20px rgba(0,0,0,.3)}
-label{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;display:block;margin:14px 0 6px;font-weight:700}
+.card{background:#1e293b;border-radius:20px;padding:18px;border:1px solid #334155}
+label{font-size:10px;color:#94a3b8;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-top:12px;display:block}
 label:first-child{margin-top:0}
-input{width:100%;padding:14px 14px;border-radius:12px;border:1.5px solid #334155;background:#0f172a;color:white;font-size:18px;font-weight:700;outline:none;transition:.2s}
+input{width:100%;padding:14px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:white;font-size:16px;margin-top:6px;outline:none}
 input:focus{border-color:#22c55e}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.result{background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:20px;padding:18px;text-align:center;margin:14px 0;color:#052e16;box-shadow:0 8px 20px rgba(34,197,94,.3)}
-.big{font-size:36px;font-weight:900;letter-spacing:-1px
+.result{background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:18px;padding:18px;text-align:center;margin-top:14px;color:#052e16}
+.big{font-size:36px;font-weight:900;letter-spacing:-1px}
+.mid{font-size:14px;font-weight:700;margin-top:4px}
+.small{font-size:11px;opacity:.8;margin-top:6px;line-height:1.4}
+.det{margin-top:12px;background:#0f172a;border-radius:14px;padding:12px;font-size:12px;line-height:1.6;color:#cbd5e1}
+.badge{display:inline-block;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:800;margin-top:8px}
+.ok{background:#dcfce7;color:#166534}
+.bad{background:#fee2e2;color:#991b1b}
+.warn{background:#fef9c3;color:#854d0e}
+.btn{width:100%;padding:14px;border-radius:12px;border:0;background:#334155;color:white;font-weight:800;margin-top:10px}
+</style>
+</head>
+<body>
+<h1>🚗 CALCULADORA REAL CALI</h1>
+<p class="sub">Descuento de tu gasto real por KM en Cali</p>
+<div class="card">
+<label>Costo por KM (tuya - gasolina/moto/carro)</label>
+<input id="costo" type="number" value="600">
+<label>Valor del viaje que te paga la app $</label>
+<input id="valor" type="number" placeholder="Ej: 25612">
+<div class="row">
+<div><label>KM del viaje</label><input id="km" type="number" step="0.1" placeholder="Ej: 11.7"></div>
+<div><label>Minutos</label><input id="min" type="number" placeholder="Ej: 44"></div>
+</div>
+<div id="out" class="result" style="display:none">
+<div class="big" id="hora">$0 /h</div>
+<div class="mid" id="estado">-</div>
+<div class="badge" id="badge"></div>
+<div class="small" id="resumen"></div>
+<div class="det" id="det"></div>
+</div>
+<button class="btn" onclick="calc()">Calcular ganancia real</button>
+</div>
+<script>
+function calc(){
+let costo=parseFloat(document.getElementById('costo').value)||0;
+let valor=parseFloat(document.getElementById('valor').value)||0;
+let km=parseFloat(document.getElementById('km').value)||0;
+let min=parseFloat(document.getElementById('min').value)||0;
+if(!valor||!km||!min)return alert('Llena valor, km y minutos');
+let gasto=km*costo;
+let ganancia=valor-gasto;
+let horas=min/60;
+let porHora=ganancia/horas;
+let out=document.getElementById('out');
+let hora=document.getElementById('hora');
+let estado=document.getElementById('estado');
+let badge=document.getElementById('badge');
+let resumen=document.getElementById('resumen');
+let det=document.getElementById('det');
+out.style.display='block';
+hora.textContent='$'+Math.round(porHora).toLocaleString('es-CO')+' /h';
+resumen.textContent='Ganancia neta del viaje: $'+Math.round(ganancia).toLocaleString('es-CO')+' (después de $'+Math.round(gasto).toLocaleString('es-CO')+' de gasto)';
+det.innerHTML='Valor app: $'+valor.toLocaleString()+'<br>Gasto ('+km+'km x $'+costo+'): $'+Math.round(gasto).toLocaleString()+'<br>Tiempo: '+min+' min ('+horas.toFixed(2)+'h)<br><br><b>Formula:</b> ('+valor+' - '+Math.round(gasto)+') / '+horas.toFixed(2)+'h = $'+Math.round(porHora).toLocaleString()+'/h';
+if(porHora>=25000){estado.textContent='🔥 BUEN VIAJE - ACEPTA';badge.textContent='RENTABLE';badge.className='badge ok';}
+else if(porHora>=15000){estado.textContent='⚠️ VIAJE MEDIO';badge.textContent='MEDIO';badge.className='badge warn';}
+else{estado.textContent='❌ NO RENTABLE - RECHAZA';badge.textContent='PERDIDA';badge.className='badge bad';}
+window.scrollTo(0,document.body.scrollHeight);
+}
+</script>
+</body>
+</html>
