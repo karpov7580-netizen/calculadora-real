@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculadora Real Cali v4</title>
+<title>Calculadora Real Cali v4.1</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,sans-serif}
 body{background:#0f172a;color:#fff;padding:14px;max-width:440px;margin:0 auto}
@@ -12,7 +12,7 @@ h1{text-align:center;font-size:20px;font-weight:900;margin:10px 0}
 label{font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:800;margin-top:12px;display:block;letter-spacing:1px}
 input{width:100%;padding:14px;border-radius:12px;border:1px solid #334155;background:#0f172a;color:white;font-size:16px;margin-top:6px;outline:none}
 .btn{width:100%;padding:15px;border-radius:14px;border:0;background:#22c55e;color:#052e16;font-weight:900;font-size:16px;margin-top:16px;cursor:pointer}
-.result{border-radius:18px;padding:18px;text-align:center;margin-top:16px;background:linear-gradient(135deg,#a78bfa,#8b5cf6);color:#1e1b4b}
+.result{border-radius:18px;padding:18px;text-align:center;margin-top:16px;background:linear-gradient(135deg,#a78bfa,#8b5cf6);color:#1e1b4b;display:none}
 .big{font-size:34px;font-weight:900}
 .mid{font-size:14px;font-weight:800;margin-top:6px}
 .det{margin-top:12px;background:#0f172a;border-radius:12px;padding:12px;font-size:12px;color:#cbd5e1;text-align:left;line-height:1.6}
@@ -24,33 +24,56 @@ input{width:100%;padding:14px;border-radius:12px;border:1px solid #334155;backgr
 <label>Costo por KM $</label>
 <input id="costo" type="number" value="600">
 <label>Valor por KM que paga la app $</label>
-<input id="valorKm" type="number" value="1500">
+<input id="valorKm" type="number" value="1200">
 <label>Ganancia esperada por hora $</label>
 <input id="meta" type="number" value="16000">
-<div id="out" class="result" style="display:none"></div>
-<button class="btn" onclick="calcular()">CALCULAR VALOR POR HORA</button>
+<div id="out" class="result"></div>
+<button class="btn" id="btnCalc">CALCULAR VALOR POR HORA</button>
 <div style="font-size:11px;color:#64748b;text-align:center;margin-top:10px">Formula: Valor/h = ValorKM x (Meta / (ValorKM-Costo))</div>
 </div>
 
 <script>
-function calcular(){
-let costo=parseFloat(document.getElementById('costo').value)||0;
-let valorKm=parseFloat(document.getElementById('valorKm').value)||0;
-let meta=parseFloat(document.getElementById('meta').value)||0;
-if(!costo||!valorKm||!meta) return alert('Llena los 3 datos');
+document.getElementById('btnCalc').addEventListener('click', function(){
+  var costo = parseFloat(document.getElementById('costo').value) || 0;
+  var valorKm = parseFloat(document.getElementById('valorKm').value) || 0;
+  var meta = parseFloat(document.getElementById('meta').value) || 0;
+  
+  if(!costo || !valorKm || !meta){
+    alert('Llena los 3 datos');
+    return;
+  }
+  var ganKm = valorKm - costo;
+  if(ganKm <= 0){
+    alert('El valor por KM debe ser mayor que el costo');
+    return;
+  }
+  var velNecesaria = meta / ganKm;
+  var valorPorHora = valorKm * velNecesaria;
+  var costoPorHora = costo * velNecesaria;
+  var valor15 = valorKm * 15;
+  var neta15 = ganKm * 15;
+  var falta = meta - neta15;
 
-let ganKm = valorKm - costo;
-if(ganKm<=0) return alert('El valor por KM debe ser mayor que el costo');
-
-let velNecesaria = meta / ganKm;
-let valorPorHora = valorKm * velNecesaria;
-let costoPorHora = costo * velNecesaria;
-
-let o=document.getElementById('out');
-o.style.display='block';
-o.innerHTML=`
-<div class=big>$${Math.round(valorPorHora).toLocaleString('es-CO')} /h</div>
-<div class=mid>Debe facturar bruto por hora</div>
-<div class=det>
-<b>Datos:</b><br>
-Costo: $${costo}/km<br
+  var o = document.getElementById('out');
+  o.style.display = 'block';
+  
+  var html = '<div class="big">$' + Math.round(valorPorHora).toLocaleString('es-CO') + ' /h</div>';
+  html += '<div class="mid">Debe facturar bruto por hora</div>';
+  html += '<div class="det">';
+  html += '<b>Datos:</b><br>Costo: $' + costo + '/km<br>Valor app: $' + valorKm + '/km<br>Ganancia por km: $' + ganKm + '/km<br>Meta: $' + meta.toLocaleString('es-CO') + '/h<br><br>';
+  html += '<b>Resultado:</b><br>Velocidad necesaria: <b>' + velNecesaria.toFixed(1) + ' km/h</b><br>';
+  html += 'Valor hora viaje: <b>$' + Math.round(valorPorHora).toLocaleString('es-CO') + '</b> bruto<br>';
+  html += 'Costo hora: $' + Math.round(costoPorHora).toLocaleString('es-CO') + '<br>Ganancia neta: <b>$' + meta.toLocaleString('es-CO') + '/h</b><br><br>';
+  html += '<b>A 15 km/h en Cali:</b><br>Valor hora = $' + valor15.toLocaleString('es-CO') + ' bruto<br>Neta = $' + neta15.toLocaleString('es-CO') + '/h<br>';
+  if(neta15 >= meta){
+    html += '✅ SI llegas';
+  } else {
+    html += '❌ Te faltan $' + Math.round(falta).toLocaleString('es-CO');
+  }
+  html += '</div>';
+  o.innerHTML = html;
+  o.scrollIntoView({behavior:'smooth'});
+});
+</script>
+</body>
+</html>
